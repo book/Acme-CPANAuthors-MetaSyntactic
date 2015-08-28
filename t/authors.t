@@ -2,41 +2,28 @@ use strict;
 use warnings;
 use Test::More;
 use File::Spec;
+use File::Path qw(make_path);
 use Acme::CPANAuthors::MetaSyntactic;
 
 plan skip_all => 'these tests are for release candidate testing'
     if !$ENV{RELEASE_TESTING};
 
-eval "use CPAN::Common::Index::LocalPackage; 1"
+eval "use CPAN::Common::Index::Mirror; 1"
     or plan skip_all =>
-    "CPAN::Common::Index::LocalPackage required for testing authors list";
+    "CPAN::Common::Index::Mirror required for testing authors list";
 
 plan tests => 1;
 
-# try to get a 02packages.details.txt.gz from somewhere
-# locations found in CPAN.pm, and my local installations
-my $details;
-{
-    my @dirs;
-    eval "use File::HomeDir; 1" and do {
-        push @dirs, File::HomeDir->my_data, File::HomeDir->my_home;
-    };
-    push @dirs, $ENV{HOME} if $ENV{HOME};
-    push @dirs, File::Spec->catpath($ENV{HOMEDRIVE}, $ENV{HOMEPATH}, '')
-      if $ENV{HOMEDRIVE} && $ENV{HOMEPATH};
-    push @dirs, $ENV{USERPROFILE} if $ENV{USERPROFILE};
-    @dirs
-        = map +( "$_/.cpan/sources/modules", "$_/.cpanplus",
-        "$_/.cpanm/sources/*" ),
-        grep defined, @dirs;
-    my @candidates =
-        sort { (stat$b)[9] <=> (stat$a)[9] }
-        map glob(  "$_/02packages.details.txt*" ), @dirs;
-    $details = shift @candidates;
+# handle the CPAN::Common::Index::Mirror cache
+my $cache_dir = File::Spec->catdir( File::Spec->tmpdir, "cpan-$<" );
+make_path $cache_dir unless -e $cache_dir;
+my $index = CPAN::Common::Index::Mirror->new( { cache => $cache_dir } );
+my $cache = $index->cached_package;
+if ( time - ( stat $cache )[9] > 24 * 60 * 60 ) {
+    diag "Refreshing index cache (@{[ ~~ localtime +( stat $cache )[9] ]})";
+    $index->refresh_index;
 }
-
-diag "Reading packages from $details";
-my $index = CPAN::Common::Index::LocalPackage->new( { source => $details } );
+diag "Reading packages from $cache";
 
 # get both lists
 my %seen;
