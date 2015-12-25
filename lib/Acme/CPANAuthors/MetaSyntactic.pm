@@ -15,6 +15,7 @@ use Acme::CPANAuthors::Register (
     MARKF     => "Mark Fowler",
     MCARTMELL => "Mike Cartmell",
     SAPER     => "Sebastien Aperghis-Tramoni",
+    SHLOMIF   => "Shlomi Fish",
 );
 
 # from the unicode theme:
