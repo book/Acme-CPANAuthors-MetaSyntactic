@@ -14,6 +14,7 @@ use Acme::CPANAuthors::Register (
     JQUELIN   => "Jerome Quelin",
     MARKF     => "Mark Fowler",
     MCARTMELL => "Mike Cartmell",
+    PERLANCAR => "perlancar",
     SAPER     => "Sebastien Aperghis-Tramoni",
     SHLOMIF   => "Shlomi Fish",
 );
